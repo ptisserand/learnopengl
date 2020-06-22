@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <cmath>
 
 #define ROB_USE_EBO 0
 const unsigned int SCR_WIDTH = 800;
@@ -103,8 +104,14 @@ int main()
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
         glUseProgram(shaderProgram);
+
+        // update the uniform color
+        float timeValue = glfwGetTime();
+        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f); // must be done after at least 1 glUseProgram
+        
         glBindVertexArray(VAO);
 #if ROB_USE_EBO
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -136,11 +143,9 @@ const char* vertexShader_source = R"glsl(
 #version 330 core
 layout (location = 0) in vec3 aPos; // the position variable has attribute position 0
 
-out vec4 vertexColor; // specify an output color for fragment shader
 void main()
 {
     gl_Position = vec4(aPos, 1.0); // vec3 to vec4 conversion
-    vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // set output color to dark red
 };
 )glsl";
 
@@ -148,10 +153,10 @@ const char* fragmentShader_source = R"glsl(
 #version 330 core
 out vec4 fragColor;
 
-in vec4 vertexColor; // the input variable from vertex shader (same name and same type)
+uniform vec4 ourColor; 
 void main()
 {
-    fragColor = vertexColor;
+    fragColor = ourColor;
 };
 )glsl";
 
