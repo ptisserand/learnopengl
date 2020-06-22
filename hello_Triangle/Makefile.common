@@ -1,0 +1,4 @@
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+INCFLAGS=-I $(ROOT_DIR)/include
+LDFLAGS=-lglfw -ldl
