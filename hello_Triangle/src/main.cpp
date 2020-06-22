@@ -116,19 +116,23 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 }
 
-const char* vertexShader_source = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\n\0";
+const char* vertexShader_source = R"glsl(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+void main()
+{
+    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+};
+)glsl";
 
-const char* fragmentShader_source = "#version 330 core\n"
-"out vec4 fragColor;\n"
-"void main()\n"
-"{\n"
-"fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\n\0";
+const char* fragmentShader_source = R"glsl(
+#version 330 core
+out vec4 fragColor;
+void main()
+{
+    fragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+};
+)glsl";
 
 int shader_setup(unsigned int& shaderProgram)
 {
