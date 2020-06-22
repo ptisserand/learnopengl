@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cmath>
 
-#define ROB_USE_EBO 0
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
@@ -54,48 +53,30 @@ int main()
     }
 
     // data
-#if ROB_USE_EBO 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     float vertices[] = {
-        0.5f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
+        // position           color
+        0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
     };
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        // 1, 2, 3    // second triangle
-    };
-#else
-    float vertices[] = {
-        0.0f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f
-    };
-#endif
 
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
-#if ROB_USE_EBO
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-#endif
+
     // 1. bind Vertex Array object
     glBindVertexArray(VAO);
     // 2. copy our vertices array in a buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-#if ROB_USE_EBO
-    // 3. copy our index array in a element buffer for OpenGL to use
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-#endif
-    // 4. then set the vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // 3. then set the vertex attributes pointers
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     while(!glfwWindowShouldClose(window)) {
         // input
@@ -105,19 +86,10 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shaderProgram);
-
-        // update the uniform color
-        float timeValue = glfwGetTime();
-        float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f); // must be done after at least 1 glUseProgram
-        
+    
         glBindVertexArray(VAO);
-#if ROB_USE_EBO
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-#else
         glDrawArrays(GL_TRIANGLES, 0, 3);
-#endif
+
         glBindVertexArray(0);
         // check and call events and swap the buffers
         glfwPollEvents();
@@ -142,10 +114,13 @@ void processInput(GLFWwindow* window)
 const char* vertexShader_source = R"glsl(
 #version 330 core
 layout (location = 0) in vec3 aPos; // the position variable has attribute position 0
+layout (location = 1) in vec3 aColor; // the color variable has attribute position 1
 
+out vec3 outColor;
 void main()
 {
     gl_Position = vec4(aPos, 1.0); // vec3 to vec4 conversion
+    outColor = aColor;
 };
 )glsl";
 
@@ -153,10 +128,10 @@ const char* fragmentShader_source = R"glsl(
 #version 330 core
 out vec4 fragColor;
 
-uniform vec4 ourColor; 
+in vec3 outColor; 
 void main()
 {
-    fragColor = ourColor;
+    fragColor = vec4(outColor, 1.0);
 };
 )glsl";
 
