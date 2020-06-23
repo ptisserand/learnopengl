@@ -16,6 +16,7 @@ const unsigned int SCR_HEIGHT = 600;
 void framebuffer_size_calback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+float mixin = 0.3f;
 
 int main()
 {    
@@ -94,8 +95,8 @@ int main()
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -155,6 +156,7 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+        ourShader.setFloat("mixin", mixin);
         ourShader.use();
     
         glBindVertexArray(VAO);
@@ -178,8 +180,29 @@ void framebuffer_size_calback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+const float mixin_step = 0.005f;
+
+void increase_mixin()
+{
+    if (mixin < 0.97f) {
+        mixin += mixin_step;
+    }
+}
+
+void decrease_mixin()
+{
+    if (mixin > 0.05f) {
+        mixin -= mixin_step;
+    }
+}
 void processInput(GLFWwindow* window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        increase_mixin();
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        decrease_mixin();
+    }
 }
